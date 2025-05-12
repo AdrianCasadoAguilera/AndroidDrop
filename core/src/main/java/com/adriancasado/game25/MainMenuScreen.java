@@ -1,5 +1,6 @@
 package com.adriancasado.game25;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -15,7 +16,7 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void show() {
-
+        game.font.getData().setScale(0.01f);  // Ajuste permanente al entrar en este screen
     }
 
     @Override
@@ -26,7 +27,6 @@ public class MainMenuScreen implements Screen {
         game.batch.setProjectionMatrix(game.viewport.getCamera().combined);
 
         game.batch.begin();
-        //draw text. Remember that x and y are in meters
         game.font.draw(game.batch, "Welcome to Drop!!! ", 1, 1.5f);
         game.font.draw(game.batch, "Tap anywhere to begin!", 1, 1);
         game.batch.end();

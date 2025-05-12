@@ -22,6 +22,7 @@ public class GameScreen implements Screen {
     Texture bucketTexture;
     Texture dropTexture;
     Sound dropSound;
+    Sound loseSound;
     Music music;
     Sprite bucketSprite;
     Vector2 touchPos;
@@ -30,6 +31,10 @@ public class GameScreen implements Screen {
     Rectangle bucketRectangle;
     Rectangle dropRectangle;
     int dropsGathered;
+    float dropSpeed = 2f;
+    final float maxDropSpeed = 8f;
+    final float speedIncrease = 0.05f;
+
 
     public GameScreen(final Drop game) {
         this.game = game;
@@ -44,6 +49,7 @@ public class GameScreen implements Screen {
         music = Gdx.audio.newMusic(Gdx.files.internal("music.mp3"));
         music.setLooping(true);
         music.setVolume(0.5F);
+        loseSound = Gdx.audio.newSound(Gdx.files.internal("lose.mp3"));
 
         bucketSprite = new Sprite(bucketTexture);
         bucketSprite.setSize(1, 1);
@@ -103,15 +109,31 @@ public class GameScreen implements Screen {
             float dropWidth = dropSprite.getWidth();
             float dropHeight = dropSprite.getHeight();
 
-            dropSprite.translateY(-2f * delta);
+            dropSprite.translateY(-dropSpeed * delta);
             dropRectangle.set(dropSprite.getX(), dropSprite.getY(), dropWidth, dropHeight);
 
-            if (dropSprite.getY() < -dropHeight) dropSprites.removeIndex(i);
-            else if (bucketRectangle.overlaps(dropRectangle)) {
-                dropsGathered++;
+            if (dropSprite.getY() < -dropHeight) {
                 dropSprites.removeIndex(i);
-                dropSound.play();
+                loseSound.play();
+                game.setScreen(new GameOverScreen(game, dropsGathered));
+                dispose();
+                return;
             }
+
+            else if (bucketRectangle.overlaps(dropRectangle)) {
+                float dropBottom = dropRectangle.y;
+                float bucketTop = bucketRectangle.y + bucketRectangle.height;
+
+                if (dropBottom >= bucketTop - 0.2f) {
+                    dropsGathered++;
+                    dropSprites.removeIndex(i);
+                    dropSound.play();
+                    if (dropSpeed < maxDropSpeed) {
+                        dropSpeed += speedIncrease;
+                    }
+                }
+            }
+
         }
 
         dropTimer += delta;
@@ -134,6 +156,14 @@ public class GameScreen implements Screen {
         bucketSprite.draw(game.batch);
 
         game.font.draw(game.batch, "Drops collected: " + dropsGathered, 0, worldHeight);
+
+        game.font.draw(game.batch, "Drops collected: " + dropsGathered, 0, worldHeight);
+
+        int fps = Gdx.graphics.getFramesPerSecond();
+        game.font.draw(game.batch, "FPS: " + fps, 0, worldHeight - 0.5f);
+
+        game.font.draw(game.batch, String.format("Velocitat: %.1f", dropSpeed), 0, worldHeight - 1f);
+
 
         for (Sprite dropSprite : dropSprites) {
             dropSprite.draw(game.batch);
@@ -176,6 +206,7 @@ public class GameScreen implements Screen {
     public void dispose() {
         backgroundTexture.dispose();
         dropSound.dispose();
+        loseSound.dispose();
         music.dispose();
         dropTexture.dispose();
         bucketTexture.dispose();
